@@ -2,7 +2,8 @@
 #include "globals.h"
 
 
-void renderLoadingScreen(GLFWwindow *window) {
+void renderLoadingScreen(GLFWwindow *window)
+{
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -30,7 +31,8 @@ void renderLoadingScreen(GLFWwindow *window) {
     glFlush();
 }
 
-void setLightsInfo(LightsInfo &lights) {
+void setLightsInfo(LightsInfo &lights)
+{
     lights.numPLights = 14;
     lights.numSLights = 14;
 
@@ -149,7 +151,8 @@ void setLightsInfo(LightsInfo &lights) {
     lights.spotLights.push_back(SP);
 }
 
-void setMVP(glm::mat4 &MMatr, glm::mat4 &VMatr, glm::mat4 &PMatr) {
+void setMVP(glm::mat4 &MMatr, glm::mat4 &VMatr, glm::mat4 &PMatr)
+{
     PMatr = glm::perspective(
         glm::radians(67.0f),                  // Угол обзора
         static_cast<float>(WinWidth) / WinHeight,    // Соотношение сторон
@@ -195,13 +198,6 @@ GLFWwindow* InitAll(int w, int h, bool Fullscreen)
         exit(-1);
     }
 
-    // Это для MacOS
-    /*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
-
-
     //В зависимости от режима экрана создаётся окно с заголовком Capybara OpenGL
     if (Fullscreen)
     {
@@ -241,8 +237,6 @@ GLFWwindow* InitAll(int w, int h, bool Fullscreen)
 
 void EndAll()
 {
-    //Просто выключение GLFW
-    //Сюда же можно добавить очистку памяти если будет нужно
     glfwTerminate();
 }
 
@@ -296,7 +290,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 //    }
 }
 
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
     double xOffset = xpos - lastMouseX;
     double yOffset = ypos - lastMouseY;
 

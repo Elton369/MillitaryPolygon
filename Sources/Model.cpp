@@ -10,7 +10,8 @@
 #include "tiny_obj_loader.h"
 
 
-auto Model::loadOBJTiny(const string& objPath, const std::string& mtlBaseDir, vector<OBJData> &objDataList) -> void {
+void Model::loadOBJTiny(const string& objPath, const std::string& mtlBaseDir, vector<OBJData> &objDataList)
+{
     std::string inputfile = objPath;
     tinyobj::ObjReaderConfig reader_config;
     reader_config.mtl_search_path = mtlBaseDir;
@@ -98,8 +99,6 @@ auto Model::loadOBJTiny(const string& objPath, const std::string& mtlBaseDir, ve
 
 void Model::render(glm::mat4 modelMatrix, glm::mat4 viewMatrix, glm::mat4 projMatrix, LightsInfo lights, GLuint mode)
 {
-    //А теперь ещё и освещение!
-
     //Сначала всегда выбираем программу
     glUseProgram(shader_programme);
 
@@ -194,8 +193,6 @@ void Model::render(glm::mat4 modelMatrix, glm::mat4 viewMatrix, glm::mat4 projMa
 
     if (modelMode == 2)
     {
-
-
         //Загрузка ссылки на текстуру в шейдер
         GLuint mtx = glGetUniformLocation(shader_programme, "material.texture");
         glUniform1i(mtx, 0);
@@ -298,11 +295,6 @@ void Model::load_texture(string path, string pathtomap) {
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
-    //Так как карты отражений может не быть - применён вот такой метод
-    //Если пути нет, она загружена не будет и её id останется 0
-    //Так как она грузится второй, то id равный 0 означает что не загружена
-    //В текстурном шейдере жёстко сказано что если карты отражений нет - считать что объект не отражает ничего
-    //По хорошему можно для надёжности через флаг сделать или генерацию карты, но и так нормально
     if (pathtomap != "")
     {
         data = stbi_load(pathtomap.c_str(), &width, &height, &nrChannels, 0);
