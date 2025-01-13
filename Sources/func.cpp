@@ -36,7 +36,7 @@ void setLightsInfo(LightsInfo &lights)
     lights.numPLights = 14;
     lights.numSLights = 14;
 
-    DirLight lSource;
+    DirLight lSource{};
     lSource.ambient = glm::vec3(0.8, 0.8, 0.7);
     lSource.diffuse = glm::vec3(0.8, 0.8, 0.7);
     lSource.specular = glm::vec3(0.5, 0.5, 0.5);
@@ -44,7 +44,7 @@ void setLightsInfo(LightsInfo &lights)
 
     lights.dirLight = lSource;
 
-    PointLight P;
+    PointLight P{};
     P.constant = 1;
     P.linear = 0.7;
     P.quadratic = 1.8;
@@ -96,7 +96,7 @@ void setLightsInfo(LightsInfo &lights)
     lights.pointLights.push_back(P);
 
 
-    SpotLight SP;
+    SpotLight SP{};
     SP.constant = 1;
     SP.linear = 0.07;
     SP.quadratic = 0.18;
@@ -161,7 +161,7 @@ void setMVP(glm::mat4 &MMatr, glm::mat4 &VMatr, glm::mat4 &PMatr)
     );
 
     CamPosition = { 0, 0, CamDistance };
-    VMatr = glm::lookAt(CamPosition, CamTarget, CamUp);
+    VMatr = glm::lookAt(CamPosition, CamFront, CamUp);
 
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -215,9 +215,8 @@ GLFWwindow* InitAll(int w, int h, bool Fullscreen)
     //Привязываются функции для обработки событий
     glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetKeyCallback(window, key_callback);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     //Активируется контекст окна
     glfwMakeContextCurrent(window);
@@ -247,111 +246,64 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     WinHeight = height;
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    //Смена направления вращения модели.
-    // if (key == GLFW_KEY_1 && action == GLFW_PRESS)
-    // {
-    //     RotationMode = !RotationMode;
-    // }
-    //Управление камерой - WASD перемещение, - и = удаление и приближение
-    if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS))
-    {
-//        CamTarget.y += CamSpeed;
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) 
+{
+    if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+        CamPosition += CamSpeed * CamFront;
+        CamMoved = true;
+    }
+    if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+        CamPosition -= CamSpeed * CamFront;
+        CamMoved = true;
+    }
+    if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+        CamPosition -= glm::normalize(glm::cross(CamFront, CamUp)) * CamSpeed;
+        CamMoved = true;
+    }
+    if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+        CamPosition += glm::normalize(glm::cross(CamFront, CamUp)) * CamSpeed;
+        CamMoved = true;
+    }
+    
+    if (key == GLFW_KEY_EQUAL && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         seaHawkZ += 0.1f;
         if (seaHawkZ > 8.0f) seaHawkZ = 8.0f;
         CamMoved = true;
     }
-    if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS))
-    {
-//        CamTarget.y -= CamSpeed;
+    if (key == GLFW_KEY_MINUS && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         seaHawkZ -= 0.1f;
         if (seaHawkZ < 0.0f) seaHawkZ = 0.0f;
         CamMoved = true;
     }
-//    if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS))
-//    {
-//        CamTarget.x += CamSpeed;
-//        CamMoved = true;
-//    }
-//    if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS))
-//    {
-//        CamTarget.x -= CamSpeed;
-//        CamMoved = true;
-//    }
-//    if (key == GLFW_KEY_EQUAL && (action == GLFW_REPEAT || action == GLFW_PRESS))
-//    {
-//        CamPosition.z -= CamSpeed;
-//        CamMoved = true;
-//    }
-//    if (key == GLFW_KEY_MINUS && (action == GLFW_REPEAT || action == GLFW_PRESS))
-//    {
-//        CamPosition.z += CamSpeed;
-//        CamMoved = true;
-//    }
 }
 
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    double xOffset = xpos - lastMouseX;
-    double yOffset = ypos - lastMouseY;
+    // Вычисление смещения мыши
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
 
-    lastMouseX = xpos;
-    lastMouseY = ypos;
+    xoffset *= CamSensitivity;
+    yoffset *= CamSensitivity;
 
-    // Если зажата левая кнопка мыши, вращаем камеру вокруг объекта
-    if (leftMousePressed) {
-        yaw += xOffset * CamSpeed * 0.1f;
-        pitch -= yOffset * CamSpeed * 0.1f;
+    // Обновляем углы
+    yaw += xoffset;
+    pitch += yoffset;
 
-        // Ограничиваем угол наклона камеры
-        if (pitch > 89.0f) pitch = 89.0f;
-        if (pitch < -89.0f) pitch = -89.0f;
+    // Ограничение угла поворота (чтобы не перевернуться)
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
 
-        // Пересчитываем позицию камеры
-        CamPosition.x = CamTarget.x + CamDistance * cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-        CamPosition.y = CamTarget.y + CamDistance * sin(glm::radians(pitch));
-        CamPosition.z = CamTarget.z + CamDistance * cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-
-        CamMoved = true;
-    }
-
-    // Если зажат колесик мыши, перемещаем камеру (панорамируем)
-    if (middleMousePressed) {
-        glm::vec3 right = glm::normalize(glm::cross(CamUp, CamPosition - CamTarget));
-        glm::vec3 up = glm::normalize(glm::cross(CamPosition - CamTarget, right));
-
-        CamTarget += -right * static_cast<float>(xOffset * CamSpeed * 0.1f);
-        CamTarget += up * static_cast<float>(yOffset * CamSpeed * 0.1f);
-
-        CamPosition += -right * static_cast<float>(xOffset * CamSpeed * 0.1f);
-        CamPosition += up * static_cast<float>(yOffset * CamSpeed * 0.1f);
-
-        CamMoved = true;
-    }
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    CamDistance -= yoffset * CamSpeed;
-    if (CamDistance < 1.0f) CamDistance = 1.0f;
-
-    // Пересчитываем позицию камеры
-    CamPosition.x = CamTarget.x + CamDistance * cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-    CamPosition.y = CamTarget.y + CamDistance * sin(glm::radians(pitch));
-    CamPosition.z = CamTarget.z + CamDistance * cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-
-    CamMoved = true;
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
-        leftMousePressed = (action == GLFW_PRESS);
-    if (button == GLFW_MOUSE_BUTTON_MIDDLE)
-        middleMousePressed = (action == GLFW_PRESS);
-
-    // Сохраняем текущее положение мыши
-    if (action == GLFW_PRESS) {
-        glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
-    }
+    // Перевод углов в направление камеры
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    CamFront = glm::normalize(front);
 
     CamMoved = true;
 }

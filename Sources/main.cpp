@@ -9,20 +9,18 @@ int WinWidth;
 int WinHeight;
 
 glm::vec3 CamPosition;
-glm::vec3 CamTarget(0);
-bool CamMoved = false;
-GLfloat CamSpeed = 0.5;
-
+glm::vec3 CamFront(0);
 glm::vec3 CamUp(0, 1, 0);
 GLfloat CamDistance = 25.0f;
-float yaw = 90.0f, pitch = 0.0f;
-bool leftMousePressed = false;
-bool middleMousePressed = false;
-double lastMouseX = 0.0, lastMouseY = 0.0;
-
-float progress = 0.0f;
+GLfloat CamSpeed = 0.5f;
+GLfloat CamSensitivity = 0.1f;
+bool CamMoved = false;
+float yaw = -90.0f, pitch = 0.0f;
+float lastX = 512, lastY = 384;
 
 float seaHawkZ = 0.0f;
+
+float progress = 0.0f;
 
 
 int main() {
@@ -121,8 +119,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (CamMoved) {
-            VMatr = WorldMatrix;
-            VMatr = glm::lookAt(CamPosition, CamTarget, CamUp);
+            VMatr = glm::lookAt(CamPosition, CamPosition + CamFront, CamUp);
             CamMoved = false;
         }
 

@@ -13,21 +13,21 @@ extern int WinHeight;
 
 extern glm::vec3 CamPosition;
 
-extern glm::vec3 CamTarget;
-
-extern bool CamMoved;
-
-extern GLfloat CamSpeed;
+extern glm::vec3 CamFront;
 
 extern glm::vec3 CamUp;
 
 extern GLfloat CamDistance;
 
+extern GLfloat CamSpeed;
+
+extern GLfloat CamSensitivity;
+
+extern bool CamMoved;
+
 extern float yaw, pitch;
 
-extern bool leftMousePressed, middleMousePressed;
-
-extern double lastMouseX, lastMouseY;
+extern float lastX, lastY;
 
 extern float progress;
 
